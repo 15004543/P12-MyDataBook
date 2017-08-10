@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 
 /**
@@ -22,6 +29,8 @@ public class BioFragment extends Fragment {
 
     Button btnBio;
     TextView tvBio;
+    private FirebaseDatabase firebaseDatabase;
+    private DatabaseReference messagePOJOReference;
 
     public BioFragment() {
         // Required empty public constructor
@@ -34,6 +43,22 @@ public class BioFragment extends Fragment {
         // Inflate the layout for this fragment
         View view =  inflater.inflate(R.layout.fragment_bio, container, false);
         tvBio = (TextView)view.findViewById(R.id.tvBio);
+        firebaseDatabase = FirebaseDatabase.getInstance();
+        messagePOJOReference = firebaseDatabase.getReference("bio");
+        messagePOJOReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String task = dataSnapshot.getValue(String.class);
+                Log.i("Check", task);
+                tvBio.setText(task);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // This method will be invoked if there is any error
+                Log.e("Error ", "Database error occurred", databaseError.toException());
+            }
+        });
         btnBio = (Button)view.findViewById(R.id.btnBio);
         btnBio.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -50,7 +75,9 @@ public class BioFragment extends Fragment {
                         .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int id) {
-                                tvBio.setText(et.getText().toString());
+                                String text = et.getText().toString();
+                                messagePOJOReference.setValue(text);
+
                             }
                         })
                         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
